@@ -100,6 +100,12 @@
       data: formData,
       processData: false,
       contentType: false,
+      success: function () {
+        alert('Complete!');
+        afterUpload();
+        var $form = $(ev.target.form);
+        $form.submit();
+      },
       error: function (xhr) {
         var errMsg;
         try {
@@ -215,6 +221,7 @@
             arguments = [arguments];
           }
           $.each(arguments, function (fileIdx, responseData) {
+            console.log(responseData);
             $fileInput = $fileInputs[fileIdx];
             var jqXHR  = responseData[2];
             var data = JSON.parse(jqXHR.responseText);
@@ -226,9 +233,9 @@
             if (willPageRefresh) {
               preventLeavingPage(false);
             } else {
-              $form.onAjaxComplete(afterUpload);
+              //$form.onAjaxComplete(afterUpload);
             }
-            $form.submit();
+            //$form.submit();
           },// After unsuccessful posts processing and file uploading
           afterUpload);
         }
