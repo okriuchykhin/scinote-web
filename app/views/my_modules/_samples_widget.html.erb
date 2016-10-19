@@ -1,0 +1,28 @@
+<div id="content">
+  <div class="samples-table">
+    <table id="samples" class="table display dataTable"
+      style="width:100%"
+      data-organization-id="<%= @project.organization.id %>"
+      data-source="<%= @samples_index_link %>"
+      data-num-columns=7
+      data-new-sample="<%= new_organization_sample_path(organization_id: @organization) %>"
+      data-create-sample="<%= organization_samples_path(organization_id: @organization) %>"
+      >
+      <thead>
+        <tr>
+          <th id="checkbox"><input name="select_all" value="1" type="checkbox"></th>
+          <th id="assigned"><%= t("samples.table.assigned") %></th>
+          <th id="sample-name"><%= t("samples.table.sample_name") %></th>
+          <th id="sample-type"><%= t("samples.table.sample_type") %></th>
+          <th id="sample-group"><%= t("samples.table.sample_group") %></th>
+          <th id="added-on"><%= t("samples.table.added_on") %></th>
+          <th id="added-by"><%= t("samples.table.added_by") %></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<%= stylesheet_link_tag 'datatables' %>
+<%= javascript_include_tag("my_modules/samples_widget") %>

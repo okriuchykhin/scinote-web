@@ -292,5 +292,6 @@ Rails.application.routes.draw do
   end
 
   get "modules/:id/widgets/activities", to: "my_modules#activities_widget", as: "activities_widget"
+  get "modules/:id/widgets/samples", to: "my_modules#samples_widget", as: "samples_widget"
 
 end

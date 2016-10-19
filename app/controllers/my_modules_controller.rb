@@ -331,14 +331,16 @@ class MyModulesController < ApplicationController
   def activities_widget
     load_vars
     @activities = @my_module.last_activities(1, @per_page)
-    render "_activities_widget", layout: false 
+    render "_activities_widget", layout: false
     #render "_activities_widget"
   end
 
   # Renders samples widget
   def samples_widget
-    @activities = @my_module.last_activities(1, @per_page)
-    render "_activities_widget"
+    load_vars
+    @samples_index_link = samples_index_my_module_path(@my_module, format: :json)
+    @organization = @my_module.experiment.project.organization
+    render "_samples_widget", layout: 'main'
   end
 
   private
