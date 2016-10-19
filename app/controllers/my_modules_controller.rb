@@ -327,6 +327,20 @@ class MyModulesController < ApplicationController
     end
   end
 
+  # Renders activity widget
+  def activities_widget
+    load_vars
+    @activities = @my_module.last_activities(1, @per_page)
+    render "_activities_widget", layout: false 
+    #render "_activities_widget"
+  end
+
+  # Renders samples widget
+  def samples_widget
+    @activities = @my_module.last_activities(1, @per_page)
+    render "_activities_widget"
+  end
+
   private
 
   def load_vars

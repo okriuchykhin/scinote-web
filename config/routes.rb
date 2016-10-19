@@ -290,4 +290,7 @@ Rails.application.routes.draw do
     get 'avatar/:id/:style' => 'users/registrations#avatar', as: 'avatar'
     post 'avatar_signature' => 'users/registrations#signature'
   end
+
+  get "modules/:id/widgets/activities", to: "my_modules#activities_widget", as: "activities_widget"
+
 end

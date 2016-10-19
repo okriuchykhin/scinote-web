@@ -35,6 +35,8 @@ class MyModule < ActiveRecord::Base
   has_many :activities, inverse_of: :my_module
   has_many :report_elements, inverse_of: :my_module, :dependent => :destroy
   has_many :protocols, inverse_of: :my_module, dependent: :destroy
+  has_one :activity_widget, inverse_of: :my_module,
+          class_name: 'WidgetActivity', dependent: :destroy
 
   scope :is_archived, ->(is_archived) { where('archived = ?', is_archived) }
 
