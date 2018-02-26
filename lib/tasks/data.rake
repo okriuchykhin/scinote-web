@@ -74,4 +74,13 @@ namespace :data do
   desc "Remove temporary and obsolete data"
   task clean: [:environment, :clean_temp_files, :clean_unconfirmed_users]
 
+  desc 'Export team to JSON file'
+  task team_export: :environment do
+    Rails.logger.info 'Exporting team artifacts to JSON file'
+
+    # # First, open file
+    # File.open(filepath, 'w') do |f|
+    #   f.write(JSON.pretty_generate(users))
+    # end
+  end
 end
