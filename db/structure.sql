@@ -649,7 +649,7 @@ ALTER SEQUENCE public.my_module_tags_id_seq OWNED BY public.my_module_tags.id;
 CREATE TABLE public.my_modules (
     id bigint NOT NULL,
     name character varying NOT NULL,
-    due_date timestamp without time zone,
+    due_date date,
     description character varying,
     x integer DEFAULT 0 NOT NULL,
     y integer DEFAULT 0 NOT NULL,
@@ -7160,4 +7160,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20191206105058'),
 ('20191210103004'),
 ('20191218072619'),
-('20200113143828');
+('20200113143828'),
+('20200122204316');
+
+

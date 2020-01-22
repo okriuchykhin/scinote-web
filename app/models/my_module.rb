@@ -71,12 +71,10 @@ class MyModule < ApplicationRecord
 
   scope :is_archived, ->(is_archived) { where('archived = ?', is_archived) }
   scope :active, -> { where(archived: false) }
-  scope :overdue, -> { where('my_modules.due_date < ?', Time.current.utc) }
+  scope :overdue, -> { where('my_modules.due_date < ?', Date.current) }
   scope :without_group, -> { active.where(my_module_group: nil) }
   scope :one_day_prior, (lambda do
-    where('my_modules.due_date > ? AND my_modules.due_date < ?',
-          Time.current.utc,
-          Time.current.utc + 1.day)
+    where('my_modules.due_date > ? AND my_modules.due_date < ?', Date.current, Date.current + 1.day)
   end)
   scope :workflow_ordered, -> { order(workflow_order: :asc) }
   scope :uncomplete, -> { where(state: 'uncompleted') }
@@ -260,8 +258,8 @@ class MyModule < ApplicationRecord
     samples.count
   end
 
-  def is_overdue?(datetime = DateTime.current)
-    due_date.present? && datetime.utc > due_date.end_of_day.utc
+  def is_overdue?(datetime = Date.current)
+    due_date.present? && datetime > due_date
   end
 
   def overdue_for_days(datetime = DateTime.current)

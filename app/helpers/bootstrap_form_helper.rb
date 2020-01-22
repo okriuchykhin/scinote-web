@@ -65,6 +65,46 @@ module BootstrapFormHelper
       res.html_safe
     end
 
+    def date_picker(name, options = {})
+      id = "#{@object_name}_#{name}"
+      input_name = "#{@object_name}[#{name}]"
+      date = @object[name] || ''
+      js_locale = I18n.locale.to_s
+      js_format = I18n.backend.date_format.dup
+      js_format.gsub!(/%-d/, 'D')
+      js_format.gsub!(/%d/, 'DD')
+      js_format.gsub!(/%-m/, 'M')
+      js_format.gsub!(/%m/, 'MM')
+      js_format.gsub!(/%b/, 'MMM')
+      js_format.gsub!(/%B/, 'MMMM')
+      js_format.gsub!('%Y', 'YYYY')
+
+      label = options[:label] || name.to_s.humanize
+
+      style_str = ''
+      style_str = "style='#{options[:style]}'" if options[:style]
+
+      js_opts = ''
+      js_opts << 'showTodayButton: true, ' if options[:today]
+
+      res = ''
+      res << "<div class='form-group' #{style_str}><label class='control-label required' for='#{id}'>#{label}</label>" \
+             "<div class='container' style='padding-left: 0; margin-left: 0;'><div class='row'><div class='col-sm-6'>" \
+             "<div class='form-group'>"
+      res << "<div class='input-group date'>" if options[:clear]
+      res << "<input type='datetime' class='form-control' name='#{input_name}' id='#{id}' readonly data-date='#{date}' />"
+      if options[:clear]
+        res << "<span class='input-group-addon' id='#{id}_clear'><span class='fas fa-times'></span></span></div>"
+      end
+      res << "</div></div></div></div><script type='text/javascript'>$(function () { var dt = $('##{id}'); "\
+             "dt.datetimepicker({ #{js_opts}ignoreReadonly: true, locale: '#{js_locale}', format: '#{js_format}' }); "\
+             "if (dt.length > 0 && dt.data['date'] != '') "\
+             "{ $('##{id}').data('DateTimePicker').date(moment($('##{id}').data('date'))); }"
+      res << "$('##{id}_clear').click(function() { $('##{id}').data('DateTimePicker').clear(); });" if options[:clear]
+      res << '});</script></div>'
+      res.html_safe
+    end
+
     # Returns Bootstrap button group for choosing a specified enum attribute (identified by +name+) on an object
     # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
     # hash with +options+. The supported options are shown in the following examples.

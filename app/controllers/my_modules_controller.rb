@@ -143,6 +143,7 @@ class MyModulesController < ApplicationController
   end
 
   def update
+    byebug
     update_params = my_module_params
     if update_params[:due_date].present?
       update_params[:due_date] = Time.strptime(
