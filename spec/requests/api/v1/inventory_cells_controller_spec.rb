@@ -28,6 +28,13 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     second_list_item =
       create(:repository_list_item, repository: @valid_inventory,
              repository_column: @list_column, data: Faker::Name.unique.name)
+    @checklist_column = create(:repository_column, name: Faker::Name.unique.name,
+      repository: @valid_inventory, data_type: :RepositoryChecklistValue)
+    checklist_items =
+      create_list(:repository_checklist_item, 3, repository: @valid_inventory, repository_column: @checklist_column)
+    checklist_item =
+      create(:repository_checklist_item, repository: @valid_inventory,
+             repository_column: @checklist_column, data: Faker::Name.unique.name)
     @file_column = create(:repository_column, name: Faker::Name.unique.name,
       repository: @valid_inventory, data_type: :RepositoryAssetValue)
     asset = create(:asset)
@@ -41,6 +48,9 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     create(:repository_list_value, repository_list_item: list_item,
            repository_cell_attributes:
              { repository_row: @valid_item, repository_column: @list_column })
+    create(:repository_checklist_value, repository_checklist_items: checklist_items,
+           repository_cell_attributes:
+             { repository_row: @valid_item, repository_column: @checklist_column })
     create(:repository_asset_value, asset: asset,
            repository_cell_attributes:
              { repository_row: @valid_item, repository_column: @file_column })
@@ -64,6 +74,15 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         attributes: {
           column_id: @list_column.id,
           value: list_item.id
+        }
+      }
+    }
+    @valid_checklist_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @checklist_column.id,
+          value: checklist_items.pluck(:id)
         }
       }
     }
@@ -98,6 +117,17 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         attributes: {
           column_id: @list_column.id,
           value: second_list_item.id
+        }
+      }
+    }
+    @update_checklist_body = {
+      data: {
+        id: @valid_item.repository_cells
+                       .where(repository_column: @checklist_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @list_column.id,
+          value: [checklist_item.id]
         }
       }
     }
@@ -241,6 +271,24 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
       )
     end
 
+    it 'Response with correct inventory cell, checklist cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_checklist_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
     it 'Response with correct inventory cell, file cell' do
       hash_body = nil
       empty_item = create(:repository_row, repository: @valid_inventory)
@@ -347,6 +395,26 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         ActiveModelSerializers::SerializableResource
           .new(@valid_item.repository_cells
                           .where(repository_column: @list_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, checklist cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells
+                       .where(repository_column: @checklist_column).first.id
+      ), params: @update_checklist_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells
+                          .where(repository_column: @checklist_column).first,
                serializer: Api::V1::InventoryCellSerializer)
           .as_json[:data]
       )

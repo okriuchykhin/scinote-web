@@ -94,7 +94,12 @@ class Extends
 
   API_REPOSITORY_DATA_TYPE_MAPPINGS = { 'RepositoryTextValue' => 'text',
                                         'RepositoryDateValue' => 'date',
+                                        'RepositoryTimeValue' => 'time',
+                                        'RepositoryDateTimeValue' => 'date_time',
+                                        'RepositoryTimeRangeValue' => 'time_range',
+                                        'RepositoryDateTimeRangeValue' => 'date_time_range',
                                         'RepositoryListValue' => 'list',
+                                        'RepositoryChecklistValue' => 'checklist',
                                         'RepositoryAssetValue' => 'file',
                                         'RepositoryStatusValue' => 'status' }
 
