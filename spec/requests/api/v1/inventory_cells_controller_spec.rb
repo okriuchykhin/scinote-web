@@ -28,6 +28,13 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     second_list_item =
       create(:repository_list_item, repository: @valid_inventory,
              repository_column: @list_column, data: Faker::Name.unique.name)
+    @status_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryStatusValue)
+    status_item = create(:repository_status_item,
+                         repository: @valid_inventory,
+                         repository_column: @status_column)
+    second_status_item = create(:repository_status_item,
+                                repository: @valid_inventory,
+                                repository_column: @status_column)
     @checklist_column = create(:repository_column, name: Faker::Name.unique.name,
       repository: @valid_inventory, data_type: :RepositoryChecklistValue)
     checklist_items =
@@ -38,22 +45,48 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     @file_column = create(:repository_column, name: Faker::Name.unique.name,
       repository: @valid_inventory, data_type: :RepositoryAssetValue)
     asset = create(:asset)
+    @date_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryDateValue)
+    @time_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryTimeValue)
+    @date_time_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryDateTimeValue)
+    @date_range_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryDateRangeValue)
+    @time_range_column = create(:repository_column, repository: @valid_inventory, data_type: :RepositoryTimeRangeValue)
+    @date_time_range_column = create(:repository_column,
+                                     repository: @valid_inventory, data_type: :RepositoryDateTimeRangeValue)
 
     @valid_item = create(:repository_row, repository: @valid_inventory)
 
     create(:repository_text_value,
            data: Faker::Name.name,
-           repository_cell_attributes:
-             { repository_row: @valid_item, repository_column: @text_column })
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @text_column })
     create(:repository_list_value, repository_list_item: list_item,
-           repository_cell_attributes:
-             { repository_row: @valid_item, repository_column: @list_column })
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @list_column })
+    create(:repository_status_value, repository_status_item: status_item,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @status_column })
     create(:repository_checklist_value, repository_checklist_items: checklist_items,
-           repository_cell_attributes:
-             { repository_row: @valid_item, repository_column: @checklist_column })
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @checklist_column })
     create(:repository_asset_value, asset: asset,
-           repository_cell_attributes:
-             { repository_row: @valid_item, repository_column: @file_column })
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @file_column })
+    create(:repository_date_value,
+           data: Time.zone.today,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @date_column })
+    create(:repository_time_value,
+           data: Time.zone.now,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @time_column })
+    create(:repository_date_time_value,
+           data: DateTime.now,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @date_time_column })
+    create(:repository_date_range_value,
+           start_time: Time.zone.today,
+           end_time: Time.zone.today + 1.day,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @date_range_column })
+    create(:repository_time_range_value,
+           start_time: Time.zone.now,
+           end_time: Time.zone.now + 1.hour,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @time_range_column })
+    create(:repository_date_time_range_value,
+           start_time: DateTime.now,
+           end_time: DateTime.now + 1.day,
+           repository_cell_attributes: { repository_row: @valid_item, repository_column: @date_time_range_column })
 
     @valid_headers =
       { 'Authorization': 'Bearer ' + generate_token(@user.id),
@@ -74,6 +107,15 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         attributes: {
           column_id: @list_column.id,
           value: list_item.id
+        }
+      }
+    }
+    @valid_status_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @status_column.id,
+          value: status_item.id
         }
       }
     }
@@ -98,10 +140,72 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         }
       }
     }
+    @valid_date_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_column.id,
+          value: Time.zone.today
+        }
+      }
+    }
+    @valid_time_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @time_column.id,
+          value: Time.zone.now
+        }
+      }
+    }
+    @valid_date_time_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_time_column.id,
+          value: DateTime.now
+        }
+      }
+    }
+    @valid_date_range_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_range_column.id,
+          value: {
+            start_time: Time.zone.today,
+            end_time: Time.zone.today + 1.day
+          }
+        }
+      }
+    }
+    @valid_time_range_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @time_range_column.id,
+          value: {
+            start_time: Time.zone.now,
+            end_time: Time.zone.now + 1.hour
+          }
+        }
+      }
+    }
+    @valid_date_time_range_body = {
+      data: {
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_time_range_column.id,
+          value: {
+            start_time: DateTime.now,
+            end_time: DateTime.now + 1.day
+          }
+        }
+      }
+    }
     @update_text_body = {
       data: {
-        id: @valid_item.repository_cells
-                       .where(repository_column: @text_column).first.id,
+        id: @valid_item.repository_cells.where(repository_column: @text_column).first.id,
         type: 'inventory_cells',
         attributes: {
           column_id: @text_column.id,
@@ -111,8 +215,7 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     }
     @update_list_body = {
       data: {
-        id: @valid_item.repository_cells
-                       .where(repository_column: @list_column).first.id,
+        id: @valid_item.repository_cells.where(repository_column: @list_column).first.id,
         type: 'inventory_cells',
         attributes: {
           column_id: @list_column.id,
@@ -120,10 +223,19 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         }
       }
     }
+    @update_status_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @status_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @status_column.id,
+          value: second_status_item.id
+        }
+      }
+    }
     @update_checklist_body = {
       data: {
-        id: @valid_item.repository_cells
-                       .where(repository_column: @checklist_column).first.id,
+        id: @valid_item.repository_cells.where(repository_column: @checklist_column).first.id,
         type: 'inventory_cells',
         attributes: {
           column_id: @list_column.id,
@@ -133,14 +245,82 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
     }
     @update_file_body = {
       data: {
-        id: @valid_item.repository_cells
-                       .where(repository_column: @file_column).first.id,
+        id: @valid_item.repository_cells.where(repository_column: @file_column).first.id,
         type: 'inventory_cells',
         attributes: {
           column_id: @file_column.id,
           value: {
             file_name: 'test.txt',
             file_data: 'data:text/plain;base64,dGVzdDIK='
+          }
+        }
+      }
+    }
+    @update_date_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @date_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_column.id,
+          value: Time.zone.today + 2.days
+        }
+      }
+    }
+    @update_time_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @time_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @time_column.id,
+          value: Time.zone.now + 2.hours
+        }
+      }
+    }
+    @update_date_time_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @date_time_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_time_column.id,
+          value: DateTime.now + 2.hours
+        }
+      }
+    }
+    @update_date_range_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @date_range_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_range_column.id,
+          value: {
+            start_time: Time.zone.today,
+            end_time: Time.zone.today + 2.days
+          }
+        }
+      }
+    }
+    @update_time_range_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @time_range_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @time_range_column.id,
+          value: {
+            start_time: Time.zone.now,
+            end_time: Time.zone.now + 2.hours
+          }
+        }
+      }
+    }
+    @update_date_time_range_body = {
+      data: {
+        id: @valid_item.repository_cells.where(repository_column: @date_time_range_column).first.id,
+        type: 'inventory_cells',
+        attributes: {
+          column_id: @date_time_range_column.id,
+          value: {
+            start_time: DateTime.now,
+            end_time: DateTime.now + 2.hours
           }
         }
       }
@@ -153,7 +333,8 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
       get api_v1_team_inventory_item_cells_path(
         team_id: @team.id,
         inventory_id: @valid_inventory.id,
-        item_id: @valid_item.id
+        item_id: @valid_item.id,
+        page: { size: 100 }
       ), headers: @valid_headers
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
@@ -271,6 +452,24 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
       )
     end
 
+    it 'Response with correct inventory cell, status cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_status_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
     it 'Response with correct inventory cell, checklist cell' do
       hash_body = nil
       empty_item = create(:repository_row, repository: @valid_inventory)
@@ -297,6 +496,114 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         inventory_id: @valid_inventory.id,
         item_id: empty_item.id
       ), params: @valid_file_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_date_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, time cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_time_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_time cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_date_time_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_range cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_date_range_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, time_range cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_time_range_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 201
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(RepositoryCell.last,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_time_range cell' do
+      hash_body = nil
+      empty_item = create(:repository_row, repository: @valid_inventory)
+      post api_v1_team_inventory_item_cells_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: empty_item.id
+      ), params: @valid_date_time_range_body.to_json, headers: @valid_headers
       expect(response).to have_http_status 201
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
@@ -366,15 +673,13 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         team_id: @team.id,
         inventory_id: @valid_inventory.id,
         item_id: @valid_item.id,
-        id: @valid_item.repository_cells
-                       .where(repository_column: @text_column).first.id
+        id: @valid_item.repository_cells.where(repository_column: @text_column).first.id
       ), params: @update_text_body.to_json, headers: @valid_headers
       expect(response).to have_http_status 200
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
         ActiveModelSerializers::SerializableResource
-          .new(@valid_item.repository_cells
-                          .where(repository_column: @text_column).first,
+          .new(@valid_item.repository_cells.where(repository_column: @text_column).first,
                serializer: Api::V1::InventoryCellSerializer)
           .as_json[:data]
       )
@@ -386,15 +691,31 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         team_id: @team.id,
         inventory_id: @valid_inventory.id,
         item_id: @valid_item.id,
-        id: @valid_item.repository_cells
-                       .where(repository_column: @list_column).first.id
+        id: @valid_item.repository_cells.where(repository_column: @list_column).first.id
       ), params: @update_list_body.to_json, headers: @valid_headers
       expect(response).to have_http_status 200
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
         ActiveModelSerializers::SerializableResource
-          .new(@valid_item.repository_cells
-                          .where(repository_column: @list_column).first,
+          .new(@valid_item.repository_cells.where(repository_column: @list_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, status cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @status_column).first.id
+      ), params: @update_status_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @status_column).first,
                serializer: Api::V1::InventoryCellSerializer)
           .as_json[:data]
       )
@@ -413,8 +734,7 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
         ActiveModelSerializers::SerializableResource
-          .new(@valid_item.repository_cells
-                          .where(repository_column: @checklist_column).first,
+          .new(@valid_item.repository_cells.where(repository_column: @checklist_column).first,
                serializer: Api::V1::InventoryCellSerializer)
           .as_json[:data]
       )
@@ -426,15 +746,121 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         team_id: @team.id,
         inventory_id: @valid_inventory.id,
         item_id: @valid_item.id,
-        id: @valid_item.repository_cells
-                       .where(repository_column: @file_column).first.id
+        id: @valid_item.repository_cells.where(repository_column: @file_column).first.id
       ), params: @update_file_body.to_json, headers: @valid_headers
       expect(response).to have_http_status 200
       expect { hash_body = json }.not_to raise_exception
       expect(hash_body[:data]).to match(
         ActiveModelSerializers::SerializableResource
-          .new(@valid_item.repository_cells
-                         .where(repository_column: @file_column).first,
+          .new(@valid_item.repository_cells.where(repository_column: @file_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @date_column).first.id
+      ), params: @update_date_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @date_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, time cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @time_column).first.id
+      ), params: @update_time_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @time_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_time cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @date_time_column).first.id
+      ), params: @update_date_time_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @date_time_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_range cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @date_range_column).first.id
+      ), params: @update_date_range_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @date_range_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, time_range cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @time_range_column).first.id
+      ), params: @update_time_range_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @time_range_column).first,
+               serializer: Api::V1::InventoryCellSerializer)
+          .as_json[:data]
+      )
+    end
+
+    it 'Response with correct inventory cell, date_time_range cell' do
+      hash_body = nil
+      patch api_v1_team_inventory_item_cell_path(
+        team_id: @team.id,
+        inventory_id: @valid_inventory.id,
+        item_id: @valid_item.id,
+        id: @valid_item.repository_cells.where(repository_column: @date_time_range_column).first.id
+      ), params: @update_date_time_range_body.to_json, headers: @valid_headers
+      expect(response).to have_http_status 200
+      expect { hash_body = json }.not_to raise_exception
+      expect(hash_body[:data]).to match(
+        ActiveModelSerializers::SerializableResource
+          .new(@valid_item.repository_cells.where(repository_column: @date_time_range_column).first,
                serializer: Api::V1::InventoryCellSerializer)
           .as_json[:data]
       )
@@ -448,8 +874,7 @@ RSpec.describe 'Api::V1::InventoryCellsController', type: :request do
         team_id: @team.id,
         inventory_id: @valid_inventory.id,
         item_id: @valid_item.id,
-        id: @valid_item.repository_cells
-                       .where(repository_column: @file_column).first.id
+        id: @valid_item.repository_cells.where(repository_column: @file_column).first.id
       ), params: invalid_file_body.to_json, headers: @valid_headers
       expect(response).to have_http_status 400
       expect { hash_body = json }.not_to raise_exception

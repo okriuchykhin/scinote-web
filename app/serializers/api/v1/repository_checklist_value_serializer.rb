@@ -3,16 +3,11 @@
 module Api
   module V1
     class RepositoryChecklistValueSerializer < ActiveModel::Serializer
-      attribute :checklist_item_ids
-      attribute :formatted
-
-      has_many :repository_checklist_items,
-               key: :inventory_checklist_items,
-               serializer: InventoryChecklistItemSerializer,
-               class_name: 'RepositoryChecklistItem'
-
-      def checklist_item_ids
+      attribute :inventory_checklist_item_ids do
         object.repository_checklist_items.pluck(:id)
+      end
+      attribute :inventory_checklist_item_names do
+        object.repository_checklist_items.pluck(:data)
       end
     end
   end

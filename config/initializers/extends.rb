@@ -96,6 +96,7 @@ class Extends
                                         'RepositoryDateValue' => 'date',
                                         'RepositoryTimeValue' => 'time',
                                         'RepositoryDateTimeValue' => 'date_time',
+                                        'RepositoryDateRangeValue' => 'date_range',
                                         'RepositoryTimeRangeValue' => 'time_range',
                                         'RepositoryDateTimeRangeValue' => 'date_time_range',
                                         'RepositoryListValue' => 'list',
