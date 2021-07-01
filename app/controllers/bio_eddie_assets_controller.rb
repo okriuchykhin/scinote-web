@@ -3,10 +3,10 @@
 class BioEddieAssetsController < ApplicationController
   include ActiveStorage::SetCurrent
 
-  before_action :load_vars, except: %i(create bmt_request)
+  before_action :load_vars, except: %i(create bmt_request license)
   before_action :load_create_vars, only: :create
 
-  before_action :check_read_permission, except: %i(update create start_editing bmt_request)
+  before_action :check_read_permission, except: %i(update create start_editing bmt_request license)
   before_action :check_edit_permission, only: %i(update create start_editing)
 
   def create
@@ -38,8 +38,17 @@ class BioEddieAssetsController < ApplicationController
     end
   end
 
+  def license
+    license_file_path = Rails.root.join('data/bioeddie/license.cxl')
+    if File.file?(license_file_path)
+      send_file(license_file_path)
+    else
+      render_404
+    end
+  end
+
   def bmt_request
-    return_404 unless ENV['BIOMOLECULE_TOOLKIT_BASE_URL']
+    return render_404 unless ENV['BIOMOLECULE_TOOLKIT_BASE_URL']
 
     uri = URI.parse(ENV['BIOMOLECULE_TOOLKIT_BASE_URL'])
     uri.path = request.original_fullpath.remove('/biomolecule_toolkit')
