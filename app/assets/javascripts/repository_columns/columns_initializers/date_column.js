@@ -48,16 +48,22 @@ var RepositoryDateColumnType = (function() {
     },
     loadParams: () => {
       var isRange = $('#date-range').is(':checked');
+      let hasReminder = $('#date-reminder').is(':checked');
       var columnType = $('#repository-column-data-type').val();
       if (isRange) {
         columnType = columnType.replace('Value', 'RangeValue');
       }
+      if (hasReminder) {
+        return {
+          column_type: columnType,
+          reminder_delta: $(columnContainer).find('.reminder-delta').val(),
+          reminder_value: $(columnContainer).find('.reminder-value').val(),
+          reminder_unit: $(columnContainer).find('.reminder-unit').val(),
+          reminder_message: $(columnContainer).find('.reminder-message').val()
+        };
+      }
       return {
-        column_type: columnType,
-        reminder_delta: $(columnContainer).find('.reminder-delta').val(),
-        reminder_value: $(columnContainer).find('.reminder-value').val(),
-        reminder_unit: $(columnContainer).find('.reminder-unit').val(),
-        reminder_message: $(columnContainer).find('.reminder-message').val()
+        column_type: columnType
       };
     }
   };
