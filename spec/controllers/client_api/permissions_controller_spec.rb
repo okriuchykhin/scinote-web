@@ -6,7 +6,6 @@ describe ClientApi::PermissionsController, type: :controller, broken: true do
   describe '#status' do
     let!(:user) { User.first || create(:user) }
     let!(:team) { create :team, created_by: user }
-    let!(:user_team) { create :user_team, user: user, team: team, role: 2 }
     let(:params) do
       { requiredPermissions: ['can_read_team'],
         resource: { type: 'Team', id: team.id } }

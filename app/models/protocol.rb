@@ -118,6 +118,8 @@ class Protocol < ApplicationRecord
   has_many :protocol_keywords, through: :protocol_protocol_keywords
   has_many :steps, inverse_of: :protocol, dependent: :destroy
 
+  alias created_by added_by
+
   def self.search(user,
                   include_archived,
                   query = nil,
@@ -202,6 +204,10 @@ class Protocol < ApplicationRecord
             .where('protocol_type = 3 OR '\
                    '(protocol_type = 2 AND added_by_id = :user_id)',
                    user_id: user.id))
+  end
+
+  def permission_parent
+    in_module? ? my_module : team
   end
 
   def linked_modules

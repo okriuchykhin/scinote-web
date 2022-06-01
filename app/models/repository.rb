@@ -101,6 +101,10 @@ class Repository < RepositoryBase
     end
   end
 
+  def permission_parent
+    team
+  end
+
   def default_table_state
     Constants::REPOSITORY_TABLE_DEFAULT_STATE
   end
