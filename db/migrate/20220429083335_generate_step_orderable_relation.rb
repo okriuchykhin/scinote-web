@@ -5,29 +5,38 @@ class GenerateStepOrderableRelation < ActiveRecord::Migration[6.1]
   include DatabaseHelper
 
   def up
-    Step.preload(:step_texts, :step_tables, :checklists).find_in_batches(batch_size: 100) do |steps|
-      steps.each do |step|
-        position = 0
-        orderable_elements = []
-        step.step_texts.each do |text|
-          orderable_elements << step.step_orderable_elements.new(orderable: text, position: position)
-          position += 1
-        end
-        step.step_tables.each do |table|
-          orderable_elements << step.step_orderable_elements.new(orderable: table, position: position)
-          position += 1
-        end
-        step.checklists.each do |checklist|
-          orderable_elements << step.step_orderable_elements.new(orderable: checklist, position: position)
-          position += 1
-        end
+    ActiveRecord::Base.connection.execute(
+      "INSERT INTO step_orderable_elements(step_id, position, orderable_type, orderable_id, created_at, updated_at) "\
+      "SELECT steps.id, (ROW_NUMBER () OVER (PARTITION BY step_texts.step_id ORDER BY step_texts.id) - 1), "\
+      "'StepText', step_texts.id, NOW(), NOW() "\
+      "FROM step_texts "\
+      "JOIN steps ON steps.id = step_texts.step_id"
+    )
 
-        StepOrderableElement.import(orderable_elements)
-      end
-    end
+    ActiveRecord::Base.connection.execute(
+      "INSERT INTO step_orderable_elements(step_id, position, orderable_type, orderable_id, created_at, updated_at) "\
+      "SELECT steps.id, "\
+        "(ROW_NUMBER () OVER (PARTITION BY step_tables.step_id ORDER BY step_tables.id) + COUNT(step_orderable_elements.id) - 1), "\
+        "'StepTable', step_tables.id, NOW(), NOW() "\
+      "FROM step_tables "\
+      "JOIN steps ON steps.id = step_tables.step_id "\
+      "LEFT OUTER JOIN step_orderable_elements ON step_orderable_elements.step_id = steps.id "\
+      "GROUP BY step_tables.id, steps.id"
+    )
+
+    ActiveRecord::Base.connection.execute(
+      "INSERT INTO step_orderable_elements(step_id, position, orderable_type, orderable_id, created_at, updated_at) "\
+      "SELECT steps.id, "\
+        "(ROW_NUMBER () OVER (PARTITION BY checklists.step_id ORDER BY checklists.id) + COUNT(step_orderable_elements.id) - 1), "\
+        "'Checklist', checklists.id, NOW(), NOW() "\
+      "FROM checklists "\
+      "JOIN steps ON steps.id = checklists.step_id "\
+      "LEFT OUTER JOIN step_orderable_elements ON step_orderable_elements.step_id = steps.id "\
+      "GROUP BY checklists.id, steps.id"
+    )
   end
 
   def down
-    StepOrderableElement.destroy_all
+    StepOrderableElement.delete_all
   end
 end
