@@ -132,4 +132,4 @@ RUN source ~/.bashrc && \
 ENV PATH $GEM_HOME/bin:~/node_modules/.bin:$APP_HOME/bin:$PATH
 WORKDIR $APP_HOME
 
-CMD rails s -b 0.0.0.0
+CMD source ~/.bashrc && rails s -b 0.0.0.0
